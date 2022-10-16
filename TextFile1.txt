@@ -1,0 +1,499 @@
+﻿using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Controls;
+using System.Xml.Serialization;
+using Windows.Media.Playback;
+using NAudio.Wave;
+using UnManaged;
+
+namespace SoundBoard___NSC1
+{
+    public partial class MainWindow : Window
+    {
+        static string[] path = new string[18];
+        static string[] name = new string[18];
+        static bool[] onoff = new bool[18];
+        static int[] volume = new int[18];
+        List<WaveOutEvent> audioplayers = new List<WaveOutEvent> { };
+        public static int Number = 0;
+        static int CheckBoxNum = 0;
+        public static Window1 win1 = new Window1();
+        static List<Key> keyMain = new List<Key> { Key.Back, Key.Tab, Key.Clear, Key.Enter, Key.Pause, Key.Capital, Key.Escape, Key.Space, Key.PageUp, Key.PageDown, Key.End, Key.Home, Key.Left, Key.Up, Key.Right, Key.Down, Key.Select, Key.Print, Key.Execute, Key.PrintScreen, Key.Insert, Key.Delete, Key.Help, Key.D0, Key.D1, Key.D2, Key.D3, Key.D4, Key.D5, Key.D6, Key.D7, Key.D8, Key.D9, Key.A, Key.B, Key.C, Key.C, Key.D, Key.E, Key.F, Key.G, Key.H, Key.I, Key.J, Key.K, Key.L, Key.M, Key.N, Key.O, Key.P, Key.Q, Key.R, Key.S, Key.T, Key.U, Key.V, Key.W, Key.X, Key.Y, Key.Z, Key.NumPad0, Key.NumPad1, Key.NumPad2, Key.NumPad3, Key.NumPad4, Key.NumPad5, Key.NumPad6, Key.NumPad7, Key.NumPad8, Key.NumPad9, Key.NumPad9, Key.Multiply, Key.Add, Key.Separator, Key.Decimal, Key.Divide, Key.F1, Key.F2, Key.F3, Key.F4, Key.F5, Key.F6, Key.F7, Key.F8, Key.F9, Key.F10, Key.F11, Key.F12, Key.F13, Key.F14, Key.F15, Key.F16, Key.F17, Key.F18, Key.F19, Key.F20, Key.F21, Key.F22, Key.F23, Key.F24 };
+        static HotKey[] shortcut = new HotKey[18];
+
+        static WaveOutEvent audioplayer0 = new WaveOutEvent();
+        static WaveOutEvent audioplayer1 = new WaveOutEvent();
+        static WaveOutEvent audioplayer2 = new WaveOutEvent();
+        static WaveOutEvent audioplayer3 = new WaveOutEvent();
+        static WaveOutEvent audioplayer4 = new WaveOutEvent();
+        static WaveOutEvent audioplayer5 = new WaveOutEvent();
+        static WaveOutEvent audioplayer6 = new WaveOutEvent();
+        static WaveOutEvent audioplayer7 = new WaveOutEvent();
+        static WaveOutEvent audioplayer8 = new WaveOutEvent();
+        static WaveOutEvent audioplayer9 = new WaveOutEvent();
+        static WaveOutEvent audioplayer10 = new WaveOutEvent();
+        static WaveOutEvent audioplayer11 = new WaveOutEvent();
+        static WaveOutEvent audioplayer12 = new WaveOutEvent();
+        static WaveOutEvent audioplayer13 = new WaveOutEvent();
+        static WaveOutEvent audioplayer14 = new WaveOutEvent();
+        static WaveOutEvent audioplayer15 = new WaveOutEvent();
+        static WaveOutEvent audioplayer16 = new WaveOutEvent();
+        static WaveOutEvent audioplayer17 = new WaveOutEvent();
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            for (int i = 0; i < 18; i++)
+            {
+                volume[i] = 1;
+                i++;
+            }
+            for (int i = 0; i < 18; i++)
+            {
+                name[i] = "Title";
+                i++;
+            }
+            audioplayers[0] = audioplayer0;
+            audioplayers[1] = audioplayer1;
+            audioplayers[2] = audioplayer2;
+            audioplayers[3] = audioplayer3;
+            audioplayers[4] = audioplayer4;
+            audioplayers[5] = audioplayer5;
+            audioplayers[6] = audioplayer6;
+            audioplayers[7] = audioplayer7;
+            audioplayers[8] = audioplayer8;
+            audioplayers[9] = audioplayer9;
+            audioplayers[10] = audioplayer10;
+            audioplayers[11] = audioplayer11;
+            audioplayers[12] = audioplayer12;
+            audioplayers[13] = audioplayer13;
+            audioplayers[14] = audioplayer14;
+            audioplayers[15] = audioplayer15;
+            audioplayers[16] = audioplayer16;
+            audioplayers[17] = audioplayer17;
+            DeserializeObject();
+            Update();
+        }
+
+        [Serializable]
+        public class Configuration
+        {
+            public string[] FilePath { get; set; }
+            public string[] FileName { get; set; }
+            public HotKey[] Shortcut { get; set; }
+            public bool[] OnOff { get; set; }
+            public int[] Volume { get; set; }
+        }
+        void Save(object sender, RoutedEventArgs e)
+        {
+            Configuration MainConfig = new Configuration();
+            MainConfig.FilePath = path;
+            MainConfig.FileName = name;
+            MainConfig.Shortcut = shortcut;
+            MainConfig.OnOff = onoff;
+            MainConfig.Volume = volume;
+            Serialize(MainConfig);
+            string messageBoxText = "Everything has been saved";
+            string caption = "Notification";
+            MessageBoxButton button = MessageBoxButton.OK;
+            MessageBoxImage icon = MessageBoxImage.Information;
+            MessageBoxResult result;
+            result = MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+        }
+        void File(object sender, EventArgs e)
+        {
+            Button button = (Button)sender;
+            int TextBoxNum = Int32.Parse(button.Name.Substring(4));
+            {
+                OpenFileDialog dlg = new OpenFileDialog();
+                dlg.FileName = "Clip"; // Default file name
+                dlg.DefaultExt = ".mp3"; // Default file extension
+                dlg.Filter = "Audio Files(*.mp3;*.mp4;)|*.mp3;*.mp4"; // Filter files by extension
+
+                Nullable<bool> result = dlg.ShowDialog();
+
+                if (result == true)
+                {
+                    path[TextBoxNum] = dlg.FileName;
+                    var x = (TextBox)this.FindName("Title" + TextBoxNum);
+                    name[TextBoxNum] = dlg.SafeFileName;
+                    x.Text = name[TextBoxNum];
+
+                }
+            }
+
+        }
+        private static void OnHotKeyHandler(HotKey hotKey)
+        {
+            Number = hotKey.Id;
+            InitializeSound();
+        }
+        public void ShortcutEnter(object sender, EventArgs e)
+        {
+            Button button = (Button)sender;
+            Number = Int32.Parse(button.Name.Substring(5));
+            win1.Show();
+            
+        }
+        public static void Finalizer(int keyIndex)
+        {
+            switch (win1.ctrl.ToString() + win1.alt.ToString() + win1.shift.ToString())
+            {
+                case "truefalsefalse":
+                    var hotkey0 = new HotKey(Number, keyMain[keyIndex], KeyModifier.Ctrl, OnHotKeyHandler);
+                    shortcut[Number].Unregister();
+                    shortcut[Number] = hotkey0;
+                    break;
+                case "falsetruefalse":
+                    var hotkey1 = new HotKey(Number, keyMain[keyIndex], KeyModifier.Alt, OnHotKeyHandler);
+                    shortcut[Number].Unregister();
+                    shortcut[Number] = hotkey1;
+                    break;
+                case "falsefalsetrue":
+                    var hotkey2 = new HotKey(Number, keyMain[keyIndex], KeyModifier.Shift, OnHotKeyHandler);
+                    shortcut[Number].Unregister();
+                    shortcut[Number] = hotkey2;
+                    break;
+                case "truetruefalse":
+                    var hotkey3 = new HotKey(Number, keyMain[keyIndex], KeyModifier.Ctrl & KeyModifier.Alt, OnHotKeyHandler);
+                    shortcut[Number].Unregister();
+                    shortcut[Number] = hotkey3;
+                    break;
+                case "truefalsetrue":
+                    var hotkey4 = new HotKey(Number, keyMain[keyIndex], KeyModifier.Ctrl & KeyModifier.Shift, OnHotKeyHandler);
+                    shortcut[Number].Unregister();
+                    shortcut[Number] = hotkey4;
+                    break;
+                case "falsetruetrue":
+                    var hotkey5 = new HotKey(Number, keyMain[keyIndex], KeyModifier.Alt & KeyModifier.Shift, OnHotKeyHandler);
+                    shortcut[Number].Unregister();
+                    shortcut[Number] = hotkey5;
+                    break;
+                case "truetruetrue":
+                    var hotkey6 = new HotKey(Number, keyMain[keyIndex], KeyModifier.Ctrl & KeyModifier.Alt & KeyModifier.Shift, OnHotKeyHandler);
+                    shortcut[Number].Unregister();
+                    shortcut[Number] = hotkey6;
+                    break;
+
+            }
+        }
+
+        private void PlayPause(object sender, EventArgs e)
+        {
+            Button button = (Button)sender;
+            if (button.Content.ToString() == "Play")
+            {
+                Number = Int32.Parse(button.Name.Substring(9));
+                button.Content = "Pause";
+                InitializeSound();
+            }
+            else
+            {
+                Number = Int32.Parse(button.Name.Substring(9));
+                button.Content = "Play";
+                var OPD = audioplayers[Number];
+                
+            }
+
+        }
+        private void VolumeChanged(object sender, EventArgs e)
+        {
+            Slider slider = (Slider)sender;
+            switch (Number)
+            {
+                case 0:
+                    audioplayer0.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 1:
+                    audioplayer1.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 2:
+                    audioplayer2.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 3:
+                    audioplayer3.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 4:
+                    audioplayer4.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 5:
+                    audioplayer5.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 6:
+                    audioplayer6.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 7:
+                    audioplayer7.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 8:
+                    audioplayer8.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 9:
+                    audioplayer9.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 10:
+                    audioplayer10.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 11:
+                    audioplayer11.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 12:
+                    audioplayer12.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 13:
+                    audioplayer13.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 14:
+                    audioplayer14.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 15:
+                    audioplayer15.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 16:
+                    audioplayer16.Volume = Convert.ToSingle(slider.Value);
+                    break;
+                case 17:
+                    audioplayer17.Volume = Convert.ToSingle(slider.Value);
+                    break;
+            }
+        }
+
+
+        void CheckedBox(object sender, RoutedEventArgs e)
+        {
+            CheckBox checkbox = (CheckBox)sender;
+            CheckBoxNum = Int32.Parse(checkbox.Name.Substring(8));
+
+            onoff[CheckBoxNum] = true;
+        }
+        void UnCheckedBox(object sender, RoutedEventArgs e)
+        {
+            CheckBox checkbox = (CheckBox)sender;
+            CheckBoxNum = Int32.Parse(checkbox.Name.Substring(8));
+
+            onoff[CheckBoxNum] = false;
+        }
+
+        static void InitializeSound()
+        {
+            if (onoff[CheckBoxNum] == false | name[Number] == "Title")
+            {
+                return;
+            }
+            AudioFileReader audioFile = new AudioFileReader(path[Number]);
+            if (true)
+            {
+                switch (Number)
+                {
+                    case 0:
+                        audioplayer0.Init(audioFile);
+                        audioplayer0.Play();
+                        break;
+                    case 1:
+                        audioplayer1.Init(audioFile);
+                        audioplayer1.Play();
+                        break;
+                    case 2:
+                        audioplayer2.Init(audioFile);
+                        audioplayer2.Play();
+                        break;
+                    case 3:
+                        audioplayer3.Init(audioFile);
+                        audioplayer3.Play();
+                        break;
+                    case 4:
+                        audioplayer4.Init(audioFile);
+                        audioplayer4.Play();
+                        break;
+                    case 5:
+                        audioplayer5.Init(audioFile);
+                        audioplayer5.Play();
+                        break;
+                    case 6:
+                        audioplayer6.Init(audioFile);
+                        audioplayer6.Play();
+                        break;
+                    case 7:
+                        audioplayer7.Init(audioFile);
+                        audioplayer7.Play();
+                        break;
+                    case 8:
+                        audioplayer8.Init(audioFile);
+                        audioplayer8.Play();
+                        break;
+                    case 9:
+                        audioplayer9.Init(audioFile);
+                        audioplayer9.Play();
+                        break;
+                    case 10:
+                        audioplayer10.Init(audioFile);
+                        audioplayer10.Play();
+                        break;
+                    case 11:
+                        audioplayer11.Init(audioFile);
+                        audioplayer11.Play();
+                        break;
+                    case 12:
+                        audioplayer12.Init(audioFile);
+                        audioplayer12.Play();
+                        break;
+                    case 13:
+                        audioplayer13.Init(audioFile);
+                        audioplayer13.Play();
+                        break;
+                    case 14:
+                        audioplayer14.Init(audioFile);
+                        audioplayer14.Play();
+                        break;
+                    case 15:
+                        audioplayer15.Init(audioFile);
+                        audioplayer15.Play();
+                        break;
+                    case 16:
+                        audioplayer16.Init(audioFile);
+                        audioplayer16.Play();
+                        break;
+                    case 17:
+                        audioplayer17.Init(audioFile);
+                        audioplayer17.Play();
+                        break;
+                }
+            }
+            else
+            {
+                switch (Number)
+                {
+                    case 0:
+                        audioplayer0.Stop();
+                        audioplayer0.Dispose();
+                        break;
+                    case 1:
+                        audioplayer1.Stop();
+                        audioplayer1.Dispose();
+                        break;
+                    case 2:
+                        audioplayer2.Stop();
+                        audioplayer2.Dispose();
+                        break;
+                    case 3:
+                        audioplayer3.Stop();
+                        audioplayer3.Dispose();
+                        break;
+                    case 4:
+                        audioplayer4.Stop();
+                        audioplayer4.Dispose();
+                        break;
+                    case 5:
+                        audioplayer5.Stop();
+                        audioplayer5.Dispose();
+                        break;
+                    case 6:
+                        audioplayer6.Stop();
+                        audioplayer6.Dispose();
+                        break;
+                    case 7:
+                        audioplayer7.Stop();
+                        audioplayer7.Dispose();
+                        break;
+                    case 8:
+                        audioplayer8.Stop();
+                        audioplayer8.Dispose();
+                        break;
+                    case 9:
+                        audioplayer9.Stop();
+                        audioplayer9.Dispose();
+                        break;
+                    case 10:
+                        audioplayer10.Stop();
+                        audioplayer10.Dispose();
+                        break;
+                    case 11:
+                        audioplayer11.Stop();
+                        audioplayer11.Dispose();
+                        break;
+                    case 12:
+                        audioplayer12.Stop();
+                        audioplayer12.Dispose();
+                        break;
+                    case 13:
+                        audioplayer13.Stop();
+                        audioplayer13.Dispose();
+                        break;
+                    case 14:
+                        audioplayer14.Stop();
+                        audioplayer14.Dispose();
+                        break;
+                    case 15:
+                        audioplayer15.Stop();
+                        audioplayer15.Dispose();
+                        break;
+                    case 16:
+                        audioplayer16.Stop();
+                        audioplayer16.Dispose();
+                        break;
+                    case 17:
+                        audioplayer17.Stop();
+                        audioplayer17.Dispose();
+                        break;
+                }
+            }
+        }
+        private void DeserializeObject(string filename = "C:\\Users\\kiril\\Documents\\Configuration.xml")
+        {
+            Configuration g;
+
+            using (FileStream fs = new FileStream(filename, FileMode.Open))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(Configuration));
+                g = (Configuration)serializer.Deserialize(fs);
+
+            }
+            path = g.FilePath;
+            name = g.FileName;
+            shortcut = g.Shortcut;
+            onoff = g.OnOff;
+            volume = g.Volume;
+        }
+        void Serialize(object MainConfig)
+        {
+            using (FileStream fs = new FileStream("C:\\Users\\kiril\\Documents\\Configuration.xml", FileMode.Open))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(Configuration));
+                serializer.Serialize(fs, MainConfig);
+            }
+        }
+        void Update()
+        {
+            for (int i = 0; i < 18; i++)
+            {
+                var t = (TextBox)this.FindName("Title" + i);
+                var c = (CheckBox)this.FindName("Checkbox" + i);
+                var v = (Slider)this.FindName("Volume" + i);
+                t.Text = name[i];
+                c.IsChecked = onoff[i];
+                v.Value = volume[i];
+            }
+        }
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
+        }
+
+        private void ShortcutSequence1_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+    }
+}
