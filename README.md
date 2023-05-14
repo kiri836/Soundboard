@@ -10,4 +10,4 @@ The second problem I faced was making global windows shortcuts. I wanted the sou
 
 Other than that all other functionality works: playing clips, playing/pasuing, audio levels, and saving (so that the user doesn't have to put the clips in every time they restart the application). I would like to revisit this in the future after gaining a lot more experience.
 
-Snip of how the application looks:
+The application no longer works (on windows 11 atleast) so I can't provide a picture of what it looks like but the source files are all here.
